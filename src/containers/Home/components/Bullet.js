@@ -8,8 +8,8 @@ export default class Bullet extends React.Component {
   }
   render() {
     const bulletStyle = {
-      top: this.props.x,
-      left: this.props.y,
+      top: this.props.y,
+      left: this.props.x,
     };
     return (
       <div className="bullet" style={bulletStyle} />
