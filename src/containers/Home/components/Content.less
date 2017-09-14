@@ -1,19 +1,23 @@
+#gameStartButton {
+    margin: 20px 0;
+}
+
 #stage {
     background-color: #333;
     position: relative;
     width: 500px;
     height: 500px;
-    margin-top: 20px;
     #master {
         position: absolute;
         width: 40px;
         height: 40px;
-        border: 1px dashed lightseagreen;
         padding: 2px;
-        border-radius: 40px;
     }
     #gameTime {
         color: white;
+        position: absolute;
+        top: 10px;
+        right: 10px;
     }
     @keyframes bulletFrame {
         0% {
@@ -26,11 +30,53 @@
             background-color: yellow;
         }
     }
+    @keyframes boomFrame {
+        0% {
+            background-image: url("../../../static/images/bubble_explo1.png");
+        }
+        10% {
+            background-image: url("../../../static/images/bubble_explo1.png");
+        }
+        20% {
+            background-image: url("../../../static/images/bubble_explo2.png");
+        }
+        30% {
+            background-image: url("../../../static/images/bubble_explo3.png");
+        }
+        40% {
+            background-image: url("../../../static/images/bubble_explo4.png");
+        }
+        50% {
+            background-image: url("../../../static/images/bubble_explo5.png");
+        }
+        60% {
+            background-image: url("../../../static/images/bubble_explo6.png");
+        }
+        70% {
+            background-image: url("../../../static/images/bubble_explo7.png");
+        }
+        80% {
+            background-image: url("../../../static/images/bubble_explo8.png");
+        }
+        90% {
+            background-image: url("../../../static/images/bubble_explo9.png");
+        }
+        100% {
+            background-image: url("../../../static/images/bubble_explo10.png");
+        }
+    }
     .bullet {
         position: absolute;
         border-radius: 10px;
         width: 10px;
         height: 10px;
         animation: bulletFrame 1s infinite;
+        &.boom {
+            width: 30px;
+            height: 30px;
+            background-size: cover;
+            background-color: transparent;
+            animation: boomFrame .5s infinite;
+        }
     }
 }

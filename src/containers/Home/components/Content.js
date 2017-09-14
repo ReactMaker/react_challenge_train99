@@ -4,13 +4,11 @@ import Bullet from './Bullet';
 
 import './Content.less';
 
-const planeConfig = {
-  width: 40,
-  height: 40,
-};
 const stageConfig = {
   width: 500,
   height: 500,
+  bulletSpeedBase: 0.7, // 子彈基礎速度，要是太快就很難閃了
+  bulletSpeedRandom: 0.5, // 子彈隨機加速
 };
 
 export default class Content extends Component {
@@ -36,18 +34,19 @@ export default class Content extends Component {
       39: () => { if (planeCenterX < stageConfig.width) { newPosition.planeCenterX += 1; } },
       40: () => { if (planeCenterY < stageConfig.height) { newPosition.planeCenterY += 1; } },
     };
-    Object.keys(this.keyPressed).map(key => keyCase[key]());
+    Object.keys(this.keyPressed).map(key => (keyCase[key] && keyCase[key]()));
     this.setState(newPosition);
   }
 
   createBullet = () => {
-    const randomRange = Math.floor(Math.random() * 498) + 1;
-    const randomSpeed = 1 + (Math.random() * 1);
+    const randomRangeX = Math.floor(Math.random() * stageConfig.width);
+    const randomRangeY = Math.floor(Math.random() * stageConfig.height);
+    const randomSpeed = stageConfig.bulletSpeedBase + (Math.random() * stageConfig.bulletSpeedRandom);
     const preparedBullet = {
-      0: { x: 1, y: randomRange },
-      1: { x: 499, y: randomRange },
-      2: { x: randomRange, y: 1 },
-      3: { x: randomRange, y: 499 },
+      0: { x: 1, y: randomRangeY },
+      1: { x: stageConfig.width, y: randomRangeY },
+      2: { x: randomRangeX, y: 1 },
+      3: { x: randomRangeX, y: stageConfig.height },
     };
     const side = Math.floor(Math.random() * 4);
     const newBullet = preparedBullet[side];
@@ -62,7 +61,8 @@ export default class Content extends Component {
       ...newBullet,
       vx,
       vy,
-      key: randomSpeed
+      key: randomSpeed,
+      boom: false,
     };
   }
 
@@ -75,14 +75,30 @@ export default class Content extends Component {
       }))
       .filter(bulletData => (
         bulletData.x > 0 &&
-        bulletData.x < 500 &&
+        bulletData.x < stageConfig.width &&
         bulletData.y > 0 &&
-        bulletData.y < 500
+        bulletData.y < stageConfig.height
       ));
-    if (newBullets.length < 30) {
+    if (newBullets.length < this.state.time) {
       newBullets.push(this.createBullet());
     }
-    this.setState({ bullets: newBullets });
+    const { planeCenterX, planeCenterY } = this.state;
+    const hasCollision = newBullets.find(bulletData => (
+      Math.sqrt(
+        ((bulletData.x - planeCenterX) ** 2) +
+        ((bulletData.y - planeCenterY) ** 2)
+      ) < 15
+    ));
+    if (hasCollision) {
+      alert('game over');
+      hasCollision.boom = true;
+      this.setState({ gameStatus: false, bullets: newBullets });
+      window.document.removeEventListener('keydown', this.registKeyDown);
+      window.document.removeEventListener('keyup', this.registKeyUp);
+      this.keyPressed = {};
+    } else {
+      this.setState({ bullets: newBullets });
+    }
   }
 
   registKeyDown = (e) => {
@@ -93,9 +109,15 @@ export default class Content extends Component {
     delete this.keyPressed[e.keyCode];
   }
 
+  updateTime = () => {
+    const time = Math.floor((new Date() - this.startTime) / 1000);
+    this.setState({ time });
+  }
+
   gameLoop = () => {
     this.movePlane();
     this.updateBullet();
+    this.updateTime();
     if (this.state.gameStatus) {
       window.requestAnimationFrame(this.gameLoop);
     }
@@ -103,35 +125,36 @@ export default class Content extends Component {
 
   toggleGame = () => {
     if (!this.state.gameStatus) {
-      this.setState({ gameStatus: true }, this.gameLoop);
+      this.setState({
+        time: 0,
+        planeCenterX: 250,
+        planeCenterY: 250,
+        gameStatus: true,
+        bullets: [],
+      }, this.gameLoop);
+      this.startTime = new Date();
       window.document.addEventListener('keydown', this.registKeyDown, false);
       window.document.addEventListener('keyup', this.registKeyUp, false);
-    } else {
-      this.setState({ gameStatus: false });
-      window.document.removeEventListener('keydown', this.registKeyDown);
-      window.document.removeEventListener('keyup', this.registKeyUp);
     }
-
   }
 
   render() {
-    const { time, planeCenterX, planeCenterY } = this.state;
+    const { time, planeCenterX, planeCenterY, gameStatus } = this.state;
     const planeStyle = {
-      left: planeCenterX - (planeConfig.width / 2),
-      top: planeCenterY - (planeConfig.height / 2),
+      transform: `translate(${planeCenterX - 20}px, ${planeCenterY - 20}px)`
     };
     return (
       <div className="content">
-        <button onClick={this.toggleGame}> toggle game {String(this.state.gameStatus)}</button>
+        <button id="gameStartButton" disabled={gameStatus} onClick={this.toggleGame}>開始遊戲</button>
         <div id="stage">
           {
             this.state.bullets.map(
               bulletData =>
-                <Bullet key={bulletData.key} x={bulletData.x} y={bulletData.y} />
+                <Bullet key={bulletData.key} x={bulletData.x} y={bulletData.y} boom={bulletData.boom} />
             )
           }
-          <div id="gameTime">now time: {time}</div>
-          <img id="master" src={planeImg} alt="airplane" style={planeStyle} />
+          <img id="master" src={planeImg} alt="airplane" style={planeStyle} />\
+          <div id="gameTime">{time}</div>
         </div>
       </div>
     );
