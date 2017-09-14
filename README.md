@@ -2,7 +2,7 @@
 
 React JS 製作特訓 99 閃避子彈遊戲，目前都是用 dom 操作，沒有用 canvas ，所以會比較 lag 一些，希望有機會可以使用 canvas 來完成。
 
-[Imgur](https://i.imgur.com/22H3Qha.gif)
+![Imgur](https://i.imgur.com/22H3Qha.gif)
 
 ## [DEMO](https://reactmaker.github.io/react_challenge_train99/)
 
